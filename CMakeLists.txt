@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(SoulLink-HealthSync
     src/main.cpp
     src/gen3_utils.cpp
+    src/game_registry.cpp
 )
 
 target_include_directories(SoulLink-HealthSync PRIVATE src)
