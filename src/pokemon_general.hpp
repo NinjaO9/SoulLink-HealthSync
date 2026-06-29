@@ -13,3 +13,4 @@ struct PartyData {
     uint8_t count;
     Pokemon party[6];
 };
+

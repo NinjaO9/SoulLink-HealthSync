@@ -32,16 +32,19 @@ int main()
     std::cout << "Enter Trainer ID: ";
     std::cin >> trainerID;
 
-    uintptr_t ewramBase =
-        findEWRAMBase(mgba, trainerID, *config);
+    uintptr_t ewramBase = findEWRAMBase(mgba, trainerID, *config);
+    system("pause");
+
 
     if (!ewramBase) return 1;
 
     unsigned polls = 0;
 
+
     while (polls < MAX_POLLING_INTERVALS)
     {
         PartyData party;
+        //setPokemonHPWithBattle(mgba, ewramBase, 0, 0, *config);
 
         if (validateAndReadParty(mgba, ewramBase, party, *config))
         {
@@ -53,9 +56,11 @@ int main()
             }
         }
 
+
         polls++;
         Sleep(500);
     }
-
+    
+    system("pause");
     CloseHandle(mgba);
 }

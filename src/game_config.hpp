@@ -29,5 +29,10 @@ struct GameConfig {
 
     uint16_t maxPossibleHp;
 
+    uint32_t battleMonsOffset;          // 0x23BC4
+    uint32_t battlerPartyIndexesOffset; // 0x24584
+    uint32_t battleMonSize;             // 0x58
+    uint32_t battleMonHpOffset;         // 0x28
+
     CharEncoding encoding;
 };

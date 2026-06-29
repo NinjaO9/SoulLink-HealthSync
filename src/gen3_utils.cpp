@@ -73,7 +73,7 @@ HANDLE findProcess(const std::string& processName)
     {
         if (processes[i] == 0) continue;
 
-        HANDLE handle = OpenProcess(PROCESS_VM_READ | PROCESS_QUERY_INFORMATION, FALSE, processes[i]);
+        HANDLE handle = OpenProcess(PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_VM_OPERATION | PROCESS_QUERY_INFORMATION, FALSE, processes[i]);
 
         if (handle == nullptr)
             continue;
@@ -250,6 +250,54 @@ bool validateAndReadParty(HANDLE process, uintptr_t base, PartyData& outParty, c
         if (!read(slotAddr + config.maxHpOffset, &outParty.party[i].maxHP, 2)) return false;
 
         outParty.party[i].nickname = decodeString(nickname.data(), config.nicknameLength, config.encoding);
+    }
+
+    return true;
+}
+
+bool setPokemonHP(HANDLE process, uintptr_t ewramBase, int slot, uint16_t hp, const GameConfig& config)
+{
+    if (slot < 0 || slot >= 6) return false;
+
+    uintptr_t slotAddr = ewramBase + config.partyBaseOffset + (slot * config.slotSize);
+    size_t byteswritten;
+    return WriteProcessMemory(process, (LPVOID)(slotAddr + config.currentHpOffset), &hp, sizeof(hp), &byteswritten);
+}
+
+bool setPokemonHPWithBattle(HANDLE process, uintptr_t ewramBase, int partySlot, uint16_t hp, const GameConfig& config)
+{
+    if (partySlot < 0 || partySlot >= 6) return false;
+
+    // Step 1: Write to party data
+    uintptr_t slotAddr = ewramBase + config.partyBaseOffset + (partySlot * config.slotSize);
+    SIZE_T bytesWritten;
+
+    if (!WriteProcessMemory(process,
+        (LPVOID)(slotAddr + config.currentHpOffset),
+        &hp, sizeof(hp), &bytesWritten)) return false;
+
+    // Step 2: Find which battler slot(s) correspond to this party slot
+    // gBattlerPartyIndexes[battlerIndex] = partyIndex
+    // There are 4 battler slots
+    uintptr_t battlerPartyIndexesAddr = ewramBase + config.battlerPartyIndexesOffset;
+
+    for (int battlerIndex = 0; battlerIndex < 4; battlerIndex++) {
+        uint8_t partyIndex = 0;
+        SIZE_T br;
+
+        if (!ReadProcessMemory(process,
+            (LPCVOID)(battlerPartyIndexesAddr + battlerIndex),
+            &partyIndex, 1, &br) || br != 1) continue;
+
+        if (partyIndex != partySlot) continue;
+
+        // This battler is using our party slot — update battle HP too
+        uintptr_t battleMonAddr = ewramBase + config.battleMonsOffset 
+                                  + (battlerIndex * config.battleMonSize);
+
+        WriteProcessMemory(process,
+            (LPVOID)(battleMonAddr + config.battleMonHpOffset),
+            &hp, sizeof(hp), &bytesWritten);
     }
 
     return true;

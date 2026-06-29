@@ -20,3 +20,7 @@ uintptr_t findROMBase(HANDLE process, std::string& outGameCode);
 uintptr_t findEWRAMBase(HANDLE process, uint16_t trainerID, const GameConfig& config);
 
 HANDLE findProcess(const std::string& processName);
+
+bool setPokemonHP(HANDLE process, uintptr_t ewramBase, int slot, uint16_t hp, const GameConfig& config);
+
+bool setPokemonHPWithBattle(HANDLE process, uintptr_t ewramBase, int partySlot, uint16_t hp, const GameConfig& config);

@@ -21,6 +21,11 @@ const GameConfig FRLG_CONFIG = {
 
     714, // maxPossibleHp (May remove later)
 
+    0x23BC4, // battleMonsOffset
+    0x24584, // battlerPartyIndexesOffset
+    0x58,    // battleMonSize
+    0x28,    // battleMonHpOffset
+
     CharEncoding::GEN3
 };
 
