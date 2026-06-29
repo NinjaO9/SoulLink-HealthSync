@@ -7,6 +7,7 @@ add_executable(SoulLink-HealthSync
     src/main.cpp
     src/gen3_utils.cpp
     src/game_registry.cpp
+    src/pokerule_cli.cpp
 )
 
 target_include_directories(SoulLink-HealthSync PRIVATE src)

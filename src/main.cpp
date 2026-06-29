@@ -1,5 +1,6 @@
 #include "gen3_utils.hpp"
 #include "game_registry.hpp"
+#include "pokerule_cli.hpp"
 
 #define MAX_POLLING_INTERVALS 120
 
@@ -10,8 +11,7 @@ int main()
 
     std::string gameCode;
 
-    uintptr_t romBase =
-        findROMBase(mgba, gameCode);
+    uintptr_t romBase = findROMBase(mgba, gameCode);
 
     if (!romBase) {
         std::cerr << "Unsupported game.\n";
@@ -33,33 +33,17 @@ int main()
     std::cin >> trainerID;
 
     uintptr_t ewramBase = findEWRAMBase(mgba, trainerID, *config);
-    system("pause");
-
-
     if (!ewramBase) return 1;
+    
+    PokeRule_CLI::process = mgba;
+    PokeRule_CLI::romBase = romBase;
+    PokeRule_CLI::ewramBase = ewramBase;
+    PokeRule_CLI::config = config;
 
+    
     unsigned polls = 0;
 
-
-    while (polls < MAX_POLLING_INTERVALS)
-    {
-        PartyData party;
-        //setPokemonHPWithBattle(mgba, ewramBase, 0, 0, *config);
-
-        if (validateAndReadParty(mgba, ewramBase, party, *config))
-        {
-            system("cls");
-
-            for (int i = 0; i < party.count; i++)
-            {
-                std::cout << std::dec << party.party[i].nickname << " " << party.party[i].currentHP << "/" << party.party[i].maxHP << std::endl;
-            }
-        }
-
-
-        polls++;
-        Sleep(500);
-    }
+    PokeRule_CLI::runCLI();
     
     system("pause");
     CloseHandle(mgba);

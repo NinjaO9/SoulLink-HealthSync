@@ -255,15 +255,6 @@ bool validateAndReadParty(HANDLE process, uintptr_t base, PartyData& outParty, c
     return true;
 }
 
-bool setPokemonHP(HANDLE process, uintptr_t ewramBase, int slot, uint16_t hp, const GameConfig& config)
-{
-    if (slot < 0 || slot >= 6) return false;
-
-    uintptr_t slotAddr = ewramBase + config.partyBaseOffset + (slot * config.slotSize);
-    size_t byteswritten;
-    return WriteProcessMemory(process, (LPVOID)(slotAddr + config.currentHpOffset), &hp, sizeof(hp), &byteswritten);
-}
-
 bool setPokemonHPWithBattle(HANDLE process, uintptr_t ewramBase, int partySlot, uint16_t hp, const GameConfig& config)
 {
     if (partySlot < 0 || partySlot >= 6) return false;
@@ -272,10 +263,11 @@ bool setPokemonHPWithBattle(HANDLE process, uintptr_t ewramBase, int partySlot, 
     uintptr_t slotAddr = ewramBase + config.partyBaseOffset + (partySlot * config.slotSize);
     SIZE_T bytesWritten;
 
-    if (!WriteProcessMemory(process,
-        (LPVOID)(slotAddr + config.currentHpOffset),
-        &hp, sizeof(hp), &bytesWritten)) return false;
-
+    if (!WriteProcessMemory(process, (LPVOID)(slotAddr + config.currentHpOffset), &hp, sizeof(hp), &bytesWritten))
+    {
+        std::cout << "Failed to write to memory at slot: " << partySlot << "given base:" << std::hex << ewramBase << std::dec << std::endl;
+        return false;
+    }
     // Step 2: Find which battler slot(s) correspond to this party slot
     // gBattlerPartyIndexes[battlerIndex] = partyIndex
     // There are 4 battler slots
@@ -300,5 +292,6 @@ bool setPokemonHPWithBattle(HANDLE process, uintptr_t ewramBase, int partySlot, 
             &hp, sizeof(hp), &bytesWritten);
     }
 
+    std::cout << "Hp successfully modified!" << std::endl;
     return true;
 }
